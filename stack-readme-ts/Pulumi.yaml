@@ -1,5 +1,0 @@
-name: ts-readme1
-runtime: nodejs
-description: A minimal project showing a Stack README
-template:
-  description: A minimal TypeScript Pulumi program demonstrating Stack READMEs

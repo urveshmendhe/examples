@@ -1,9 +1,0 @@
-[![Deploy this example with Pulumi](https://www.pulumi.com/images/deploy-with-pulumi/dark.svg)](https://app.pulumi.com/new?template=https://github.com/pulumi/examples/blob/master/f5bigip-ts-ltm-pool/f5bigip-ec2-instance/README.md#gh-light-mode-only)
-[![Deploy this example with Pulumi](https://get.pulumi.com/new/button-light.svg)](https://app.pulumi.com/new?template=https://github.com/pulumi/examples/blob/master/f5bigip-ts-ltm-pool/f5bigip-ec2-instance/README.md#gh-dark-mode-only)
-
-# Provision an F5 BigIP appliance on AWS
-
-Note: This application is **_optional_** and only necessary to run if you do not already have an existing
-F5 BigIP appliance to use.
-
-Please see instructions at [(Optional) Provisioning an F5 BigIP appliance on AWS](../README.md#optional-provisioning-an-f5-bigip-appliance-on-aws).

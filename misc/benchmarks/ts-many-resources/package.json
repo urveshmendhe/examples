@@ -1,9 +1,0 @@
-{
-    "name": "ts-many-resources",
-    "devDependencies": {
-        "@types/node": "22.13.14"
-    },
-    "dependencies": {
-        "@pulumi/pulumi": "3.228.0"
-    }
-}

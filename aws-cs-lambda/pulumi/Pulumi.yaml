@@ -1,8 +1,0 @@
-name: lambda
-runtime: dotnet
-description: Basic example of an AWS lambda using C#
-template:
-  config:
-    aws:region:
-      description: The AWS region to deploy into
-      default: us-east-1

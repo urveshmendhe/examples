@@ -1,560 +1,489 @@
-<p align="center">
-  <a href="https://www.pulumi.com?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=top-logo" title="Pulumi Examples - Build and Deploy Infrastructure as Code Solutions on Any Cloud">
-    <img src="https://www.pulumi.com/images/logo/logo-on-white-box.svg?" width="350">
-  </a>
-</p>
+# Guestbook Application Monitoring with Prometheus and Grafana
 
-  [![Slack](http://www.pulumi.com/images/docs/badges/slack.svg)](https://slack.pulumi.com?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=slack-badge)
-  [![GitHub Discussions](https://img.shields.io/github/discussions/pulumi/pulumi)](https://github.com/pulumi/pulumi/discussions)
-  [![License](https://img.shields.io/github/license/pulumi/pulumi)](LICENSE)
+## Overview
 
-**Pulumi** is the easiest way to build and deploy infrastructure, for any architecture and on any cloud, using programming languages that you already know and love. Code and ship infrastructure faster with your favorite languages and tools, and embed IaC anywhere with [Automation API](https://www.pulumi.com/docs/guides/automation-api/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=about-pulumi).
+This project extends the Pulumi Kubernetes Guestbook application by adding monitoring and observability using:
 
-Pulumi is open source under the [Apache 2.0 license](https://github.com/pulumi/pulumi/blob/master/LICENSE), supports many languages and clouds, and is easy to extend.
+- Prometheus
+- Grafana
+- Alertmanager
+- Node Exporter
+- Kube State Metrics
 
-## Table of contents
+The monitoring stack is deployed using Pulumi and Helm charts.
 
-- :rocket: [About This Repo](#about-the-pulumi-examples-repo)
-- :toolbox:	[All Pulumi Examples](#all-pulumi-examples)
-- :clap: [Contributors](#contributors)
-- :busts_in_silhouette: [Pulumi Community](#community)
-- :blue_book: [Pulumi Developer Resources](#pulumi-developer-resources)
-- :compass:	[Pulumi Roadmap](#pulumi-roadmap)
+---
 
-# About the Pulumi Examples Repo
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/pulumi/examples)
+# Deployment Instructions
 
-This repository contains examples of using Pulumi to build and deploy cloud applications and infrastructure across major programming languages.
+## Prerequisites
 
-Each example has a two-part prefix, `<cloud>-<language>`, to indicate which `<cloud>` and `<language>` it pertains to. For example, `<cloud>` could be:
+- Kubernetes Cluster
+- kubectl
+- Helm 3
+- Pulumi
+- Node.js
 
-- `aws` for [Amazon Web Services](https://github.com/pulumi/pulumi-aws) 
-- `azure` for [Microsoft Azure](https://github.com/pulumi/pulumi-azure)
-- `gcp` for [Google Cloud Platform](https://github.com/pulumi/pulumi-gcp) 
-- `kubernetes` for [Kubernetes](https://github.com/pulumi/pulumi-kubernetes) 
-
-See the [Pulumi documentation](https://www.pulumi.com/docs/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) for more details on getting started with Pulumi.
-
-## Checking out a single example
-
-You can checkout only the example(s) you want by using a [sparse checkout](https://git-scm.com/docs/git-sparse-checkout). The following commands show how checkout only the `aws-go-fargate` example. Replace `aws-go-fargate` with your example of interest.
+Verify installation:
 
 ```bash
-$ mkdir examples && cd examples
-$ git init
-$ git remote add origin -f https://github.com/pulumi/examples/
-$ git config core.sparseCheckout true
-$ echo "aws-go-fargate" >> .git/info/sparse-checkout ## update this
-$ git pull origin master
+kubectl version --client
+helm version
+pulumi version
+node --version
 ```
 
-Don't see an example listed? [Try Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) and use natural-language prompts to generate Pulumi infrastructure-as-code programs in _any_ language.
+---
 
-## PR Preview Validation
-
-When making changes to examples, either individual or in bulk, it's useful to validate those changes before submitting a pull request. This repository includes a `make pr_preview` target that provides preview-only sanity checks for changed examples in pull requests. This helps ensure examples remain functional without requiring full deployments.
+## Install Project Dependencies
 
 ```bash
-# Run preview checks on all changed examples
-make pr_preview
-
-# Check what examples would be tested without running previews
-DRY_LIST=1 make pr_preview
-
-# Use a custom base branch for comparison
-BASE_REF=origin/mybranch make pr_preview
+npm install
 ```
 
-The script assumes you have credentials for various providers configured. Examples that fail preview due to missing live resources or complex configuration requirements are expected and don't necessarily indicate problems.
-
-## All Pulumi examples
-
-- [AWS](#aws)
-  - [TypeScript](#typescript)
-  - [Python](#python)
-  - [Go](#go)
-  - [C#](#c)
-  - [F#](#f)
-- [Azure](#azure)
-  - [TypeScript](#typescript-1)
-  - [Python](#python-1)
-  - [Go](#go-1)
-  - [C#](#c-1)
-  - [F#](#f-1)
-- [GCP](#gcp)
-  - [TypeScript](#typescript-2)
-  - [Python](#python-2)
-  - [Go](#go-2)
-  - [C#](#c-2)
-- [Kubernetes](#kubernetes)
-  - [TypeScript](#typescript-3)
-  - [Python](#python-3)
-  - [Go](#go-3)
-  - [C#](#c-3)
-- [Openstack](#openstack)
-- [OVHCloud](#ovhcloud)
-- [DigitalOcean](#digitalocean)
-- [Multicloud](#multicloud)
-- [F5](#f5)
-- [Twilio](#twilio)
-- [Linode](#linode)
-- [Testing](#testing)
-- [Automation API](https://github.com/pulumi/automation-api-examples)
-
-## AWS
-
-### TypeScript
-
-[🔝 Back to the list](#all-pulumi-examples)
-
-Example   | Description |
---------- | --------- |
-[AI App Infrastructure](aws-ts-ai-app-infrastructure) | Deploy a serverless AI inference endpoint backed by an Amazon Bedrock foundation model.
-[API Gateway](aws-ts-apigateway) | Deploy a simple REST API that counts the number of times a route has been hit.
-[API Gateway HTTP API with routes](aws-ts-apigatewayv2-http-api) | Deploy a HTTP API that invokes a Lambda.
-[API Gateway HTTP API quickstart](aws-ts-apigatewayv2-http-api-quickcreate) | Deploy a very simple HTTP API that invokes a Lambda.
-[API Gateway V1 with EventBridge and Lambda](aws-ts-apigateway-eventbridge) | Deploy a REST API that uses EventBridge to target a Lambda function. Includes API Gateway model validation and custom integration-response mapping.
-[API Gateway V2 with EventBridge and Lambda](aws-ts-apigatewayv2-eventbridge) | Deploy an HTTP API that uses EventBridge to target a Lambda function.
-[Apigateway - Auth0](aws-ts-apigateway-auth0) | Deploy a simple REST API protected by Auth0.
-[AppSync](aws-ts-appsync) | Deploy a basic GraphQL endpoint in AWS AppSync.
-[AssumeRole](aws-ts-assume-role) | Use AssumeRole to create resources.
-[Containers](aws-ts-containers) | Provision containers on Fargate.
-[EKS - Dashboard](aws-ts-eks) | Deploy an EKS Kubernetes cluster with an EBS-backed StorageClass, then the Kubernetes Dashboard into the cluster.
-[EKS - Hello World](aws-ts-eks-hello-world) | Deploy an EKS Kubernetes cluster with an EBS-backed StorageClass, then a Kubernetes namespace and nginx deployment into the cluster.
-[EKS - Migrate Node Groups](aws-ts-eks-migrate-nodegroups) | Create an EKS cluster and node group to use for workload migration with zero downtime.
-[Fargate](aws-ts-hello-fargate) | Build, deploy, and run a Dockerized app using ECS, ECR, and Fargate.
-[Lambda Thumbnailer](aws-ts-lambda-thumbnailer) | Create a video thumbnail extractor using serverless functions.
-[Landing Zone](aws-ts-landing-zone) | Provision a single-account landing zone - VPC, KMS key, VPC flow logs, deployer and read-only IAM roles, and an encrypted CloudTrail audit trail - that downstream stacks reference.
-[Miniflux](aws-ts-pulumi-miniflux) | Stand up an RSS Service using Fargate and RDS.
-[Production Observability](aws-ts-production-observability) | Add a baseline observability stack for a Lambda service - log retention, SNS alerting, error and latency alarms, a CloudWatch dashboard, and X-Ray tracing.
-[Pulumi Webhooks](aws-ts-pulumi-webhooks) | Create a Pulumi `cloud.HttpEndpoint` that receives webhook events delivered by Pulumi Cloud, then echos the event to Slack.
-[RDS and Airflow](aws-ts-airflow) | Deploy a RDS Postgres instance and containerized Airflow.
-[Resources](aws-ts-resources) | Create various resources, including `cloudwatch.Dashboard`, `cloudwatch.EventRule`, `cloudwatch.LogGroup`, and `sqs.Queue`.
-[Ruby on Rails](aws-ts-ruby-on-rails) | Create a single EC2 virtual machine instance with a local MySQL database.
-[S3 Folder Component](aws-ts-s3-folder-component) | Serve a static website on S3 using a reusable component.
-[S3 Lambda](aws-ts-s3-lambda-copyzip) | Set up two AWS S3 Buckets and a single Lambda that listens to one and, upon each new object arriving in it, zips it up and copies it to the second bucket.
-[Serverless Application](aws-ts-serverless-raw) | Deploy a complete serverless C# application using raw resources from `@pulumi/aws`.
-[Serverless Datawarehouse](aws-ts-serverless-datawarehouse) | Deploy a serverless data warehouse.
-[Serverless React + Postgres](aws-ts-serverless-react-postgres) | Deploy a React SPA on CloudFront with a same-origin Lambda API and a private Aurora Serverless v2 (PostgreSQL) database, layered on the landing-zone example.
-[Slackbot](aws-ts-slackbot) | Create a simple slackbot that posts a notification to a specific channel any time you're @mentioned anywhere.
-[Stack Reference](aws-ts-stackreference) | Create a "team" EC2 Instance with tags set from upstream stacks.
-[Static Website](aws-ts-static-website) | Serve a static website using S3, CloudFront, Route53, and Certificate Manager.
-[Step Functions](aws-ts-stepfunctions) | Use Step Functions with a Lambda function.
-[Thumbnailer](aws-ts-thumbnailer) | Create a video thumbnail extractor using serverless functions and containers.
-[Twitter](aws-ts-twitter-athena) | Query Twitter every 2 minutes, store the results in S3, and set up an Athena table and query.
-[Voting App](aws-ts-voting-app) | Create a simple voting app using Redis and Python Flask.
-[Web Server](aws-ts-webserver) | Deploy an EC2 Virtual machine using TypeScript to run a Python web server.
-[Web Server with Manual Provisioning](aws-ts-ec2-provisioners) | Use Pulumi dynamic providers to accomplish post-provisioning configuration steps.
-[LangServe - Hello OpenAI](aws-ts-langserve) | Deploy a LangServe app that uses OpenAI's on AWS ECS.
-
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
-
-### Python
-
-[🔝 Back to the list](#all-pulumi-examples)
-
-Example   | Description |
---------- | --------- |
-[API Gateway HTTP API quickstart](aws-py-apigatewayv2-http-api-quickcreate) | Deploy a very simple HTTP API that invokes a Lambda.
-[API Gateway V2 with EventBridge and Lambda](aws-py-apigatewayv2-eventbridge) | Deploy an HTTP API that uses EventBridge to target a Lambda function.
-[AppSync](aws-py-appsync) | Deploy a basic GraphQL endpoint in AWS AppSync.
-[AssumeRole](aws-py-assume-role) | Use AssumeRole to create resources.
-[Fargate](aws-py-fargate) | Provision a full ECS Fargate cluster running a load-balanced nginx web server.
-[Resources](aws-py-resources) | Create various resources, including `cloudwatch.Dashboard`, `cloudwatch.EventRule`, `cloudwatch.LogGroup`, and `sqs.Queue`.
-[S3 Folder](aws-py-s3-folder) | Serve a static website on S3.
-[Stack Reference](aws-py-stackreference) | Create a "team" EC2 Instance with tags set from upstream stacks.
-[Step Functions](aws-py-stepfunctions) | Use Step Functions with a Lambda function.
-[Web Server](aws-py-webserver) | Deploy an EC2 instance and open port 80.
-[LangServe - Hello OpenAI](aws-py-langserve) | Deploy a LangServe app that uses OpenAI's on AWS ECS.
-
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+---
 
-### Go
+## Select/Create Pulumi Stack
 
-[🔝 Back to the list](#all-pulumi-examples)
+Create stack:
 
-Example   | Description |
---------- | --------- |
-[AssumeRole](aws-go-assume-role) | Use AssumeRole to create resources.
-[Fargate](aws-go-fargate) | Provision a full ECS Fargate cluster running a load-balanced nginx web server.
-[Lambda](aws-go-lambda) | Create a lambda that does a simple `ToUpper` on the string input and returns it.
-[S3 Folder](aws-go-s3-folder) | Serve a static website on S3.
-[Web Server](aws-go-webserver) | Deploy an EC2 Virtual machine running a Python web server.
-[LangServe - Hello OpenAI](aws-go-langserve) | Deploy a LangServe app that uses OpenAI's on AWS ECS.
+```bash
+pulumi stack init dev
+```
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
-
-### C#
-
-[🔝 Back to the list](#all-pulumi-examples)
-
-Example   | Description |
---------- | --------- |
-[AssumeRole](aws-cs-assume-role) | Use AssumeRole to create resources.
-[Fargate](aws-cs-fargate) | Build, deploy, and run a Dockerized app using ECS, ECR, and Fargate.
-[Lambda](aws-cs-lambda) | Create a lambda that does a simple `ToUpper` on the string input and returns it.
-[S3 Folder](aws-cs-s3-folder) | Serve a static website on S3.
-[Web Server](aws-cs-webserver) | Deploy an EC2 instance and open port 80.
-[LangServe - Hello OpenAI](aws-cs-langserve) | Deploy a LangServe app that uses OpenAI's on AWS ECS.
-
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
-
-### F#
+or select existing stack:
 
-[🔝 Back to the list](#all-pulumi-examples)
-
-Example   | Description |
---------- | --------- |
-[Lambda Web Server](aws-fs-lambda-webserver) | Create a web server in AWS lambda using the Giraffe web server.
-[S3 Folder](aws-fs-s3-folder) | Serve a static website on S3.
-
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
-
-## Azure
-
-### TypeScript
+```bash
+pulumi stack select dev
+```
 
-[🔝 Back to the list](#all-pulumi-examples)
+---
 
-Example   | Description |
---------- | --------- |
-[Azure Container Apps](azure-ts-containerapps) | Run a Docker image on Azure Container Apps.
-[Azure Container Instance](azure-ts-aci) | Run Azure Container Instances on Linux.
-[Azure Kubernetes Service](azure-ts-aks) | Create an Azure Kubernetes Service (AKS) Cluster.
-[Azure App Service](azure-ts-appservice) | Build a web application hosted in App Service and provision Azure SQL Database and Azure Application Insights.
-[Azure App Service with Docker](azure-ts-appservice-docker) | Build a web application hosted in App Service from Docker images.
-[App Service in Virtual Network](azure-ts-webapp-privateendpoint-vnet-injection) | Deploy two App Services - Front web app with VNet injection and Back web app with a Private Endpoint.
-[Azure Cosmos DB and LogicApp](azure-ts-cosmosdb-logicapp) | Define Cosmos DB, API connections, and link them to a logic app.
-[Azure Functions](azure-ts-functions) | Deploy a Node.js serverless function to Azure Functions.
-[Azure Functions - Many](azure-ts-functions-many) | Deploy several kinds of Azure Functions created from raw deployment packages.
-[Azure SDK integration](azure-ts-call-azure-sdk) | Call Azure SDK functions from a Pulumi program.
-[Static Website](azure-ts-static-website) | Configure static website hosting in Azure Storage.
-[Azure Synapse](azure-ts-synapse) | Starting point for enterprise analytics solutions based on Azure Synapse.
-[Web Server](azure-ts-webserver) | Provision a Linux web server in an Azure Virtual Machine.
+## Deploy Guestbook and Monitoring Stack
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+```bash
+pulumi up
+```
 
-### Python
+Verify deployment:
 
-[🔝 Back to the list](#all-pulumi-examples)
+```bash
+kubectl get pods
+kubectl get pods -n monitoring
+```
 
-Example   | Description |
---------- | --------- |
-[Azure Container Apps](azure-py-containerapps) | Run a Docker image on Azure Container Apps.
-[Azure Container Instance](azure-py-aci) | Run Azure Container Instances on Linux.
-[Azure Kubernetes Service](azure-py-aks) | Create an Azure Kubernetes Service (AKS) Cluster.
-[Azure App Service](azure-py-appservice) | Build a web application hosted in App Service and provision Azure SQL Database and Azure Application Insights.
-[Azure App Service with Docker](azure-py-appservice-docker) | Build a web application hosted in App Service from Docker images.
-[Azure SDK integration](azure-py-call-azure-sdk) | Call Azure SDK functions from a Pulumi program in Python.
-[Azure Cosmos DB and LogicApp](azure-py-cosmosdb-logicapp) | Define Cosmos DB, API connections, and link them to a logic app.
-[Minecraft Server](azure-py-minecraft-server) | Deploy an Azure Virtual Machine and provision a Minecraft server.
-[Static Website](azure-py-static-website) | Configure static website hosting in Azure Storage.
-[Azure Synapse](azure-py-synapse) | Starting point for enterprise analytics solutions based on Azure Synapse.
-[Virtual Data Center](azure-py-virtual-data-center) | Deploy Azure Virtual Data Center (VDC) hub-and-spoke network stacks in Azure, complete with ExpressRoute and VPN Gateways, Azure Firewall guarding a DMZ, and Azure Bastion.
-[Web Server](azure-py-webserver) | Provision a Linux web server in an Azure Virtual Machine.
+Expected monitoring components:
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+```text
+grafana
+prometheus-server
+prometheus-alertmanager
+prometheus-node-exporter
+prometheus-kube-state-metrics
+prometheus-pushgateway
+```
 
-### Go
+All pods should be in:
 
-[🔝 Back to the list](#all-pulumi-examples)
+```text
+STATUS = Running
+```
 
-Example   | Description |
---------- | --------- |
-[Azure Container Apps](azure-go-containerapps) | Run a Docker image on Azure Container Apps.
-[Azure Container Instance](azure-go-aci) | Run Azure Container Instances on Linux.
-[Azure Kubernetes Service](azure-go-aks) | Create an Azure Kubernetes Service (AKS) Cluster.
-[Azure App Service with Docker](azure-go-appservice-docker) | Build a web application hosted in App Service from Docker images.
-[Static Website](azure-go-static-website) | Configure static website hosting in Azure Storage.
-[Azure SDK integration](azure-go-call-azure-sdk) | Call Azure SDK functions from a Pulumi programin Go.
+---
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+# Pulumi Configuration Changes Made
 
-### C#
+## 1. Monitoring Namespace Added
 
-[🔝 Back to the list](#all-pulumi-examples)
+A dedicated Kubernetes namespace was created for monitoring resources:
 
-Example   | Description |
---------- | --------- |
-Cluster.
-[Azure Container Apps](azure-cs-containerapps) | Run a Docker image on Azure Container Apps.
-[Azure Container Instance](azure-cs-aci) | Run Azure Container Instances on Linux.
-[Azure Kubernetes Service](azure-cs-aks) | Create an Azure Kubernetes Service (AKS) Cluster.
-[AKS web app with .NET 5](azure-cs-net5-aks-webapp) | Create an Azure Kubernetes Service (AKS) cluster and deploy a web app to it using .NET 5 and C# 9.
-[AKS + Cosmos DB](azure-cs-aks-cosmos-helm) | A Helm chart deployed to AKS that stores TODOs in an Azure Cosmos DB MongoDB API.
-[Azure App Service](azure-cs-appservice) | Build a web application hosted in App Service and provision Azure SQL Database and Azure Application Insights.
-[Azure App Service with Docker](azure-cs-appservice-docker) | Build a web application hosted in App Service from Docker images.
-[Azure API integration](azure-cs-call-azure-api) | Call additional Azure API endpoints from a Pulumi program.
-[Azure Cosmos DB and LogicApp](azure-cs-cosmosdb-logicapp) | Define Cosmos DB, API connections, and link them to a logic app.
-[Azure Functions](azure-cs-functions) | Deploy a Node.js serverless function to Azure Functions.
-[Static Website](azure-cs-static-website) | Configure static website hosting in Azure Storage.
-[Azure Synapse](azure-cs-synapse) | Starting point for enterprise analytics solutions based on Azure Synapse.
-[Azure SQL Server](azure-cs-sqlserver) | An example of a SQLServer on Azure PaaS.
+```typescript
+const monitoringNamespace =
+    new k8s.core.v1.Namespace(
+        "monitoring",
+        {
+            metadata: {
+                name: "monitoring",
+            },
+        }
+    );
+```
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+---
 
-## GCP
+## 2. Prometheus Helm Deployment
 
-### TypeScript
+Created:
 
-[🔝 Back to the list](#all-pulumi-examples)
+```text
+monitoring/prometheus.ts
+```
 
-Example   | Description |
---------- | --------- |
-[Cloud Run](gcp-ts-cloudrun) | Deploy a custom Docker image into Google Cloud Run service.
-[Functions - Raw](gcp-ts-serverless-raw) | Deploy two Google Cloud Functions implemented in Python and Go.
-[Functions](gcp-ts-functions) | Deploy an HTTP Google Cloud Function endpoint.
-[GKE - Hello World](gcp-ts-gke-hello-world) | Deploy a GKE cluster, then a Kubernetes namespace and nginx deployment into the cluster.
-[GKE](gcp-ts-gke) | Provision a Google Kubernetes Engine (GKE) cluster, then a Kubernetes Deployment.
-[Ruby on Rails](gcp-ts-k8s-ruby-on-rails-postgresql) | Deliver a containerized Ruby on Rails application.
-[Slackbot](gcp-ts-slackbot) | Create a simple slackbot that posts a notification to a specific channel any time you're @mentioned anywhere.
+Prometheus is deployed using the Prometheus Community Helm Chart:
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+```typescript
+new k8s.helm.v3.Release(
+    "prometheus",
+    {
+        chart: "prometheus",
+        repositoryOpts: {
+            repo: "https://prometheus-community.github.io/helm-charts",
+        },
+        namespace: namespace.metadata.name,
+    }
+);
+```
 
-### Python
+---
 
-[🔝 Back to the list](#all-pulumi-examples)
+## 3. Grafana Helm Deployment
 
-Example   | Description |
---------- | --------- |
-[Functions - Raw](gcp-py-serverless-raw) | Deploy two Google Cloud Functions implemented in Python and Go.
-[Functions](gcp-py-functions) | Deploy a Python-based Google Cloud Function.
-[GKE](gcp-py-gke) | Provision a Google Kubernetes Engine (GKE) cluster, then a Kubernetes Deployment.
-[Network Component](gcp-py-network-component) | Use a reusable component to create a Google Cloud Network and instance.
-[nginx Server](gcp-py-instance-nginx) | Build a nginx server in Google Cloud.
+Created:
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+```text
+monitoring/grafana.ts
+```
 
-### Go
+Grafana is deployed using the official Grafana Helm Chart.
 
-[🔝 Back to the list](#all-pulumi-examples)
+```typescript
+new k8s.helm.v3.Release(
+    "grafana",
+    {
+        chart: "grafana",
+        repositoryOpts: {
+            repo: "https://grafana.github.io/helm-charts",
+        },
 
-Example   | Description |
---------- | --------- |
-[Functions](gcp-go-functions) | Deploy a Go-based Google Cloud Function.
-[Functions - Raw](gcp-py-serverless-raw) | Deploy a Google Cloud Function implemented in Python.
-[Web Server](gcp-go-webserver) | Build a web server in Google Cloud.
+        values: {
+            adminUser: "admin",
+            adminPassword: "admin123",
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+            service: {
+                type: "NodePort",
+            },
+        },
+    }
+);
+```
 
-### C#
+---
 
-[🔝 Back to the list](#all-pulumi-examples)
+## 4. Frontend Service Monitoring Enabled
 
-Example   | Description |
---------- | --------- |
-[Functions - Raw](gcp-py-serverless-raw) | Deploy a Google Cloud Function implemented in Python.
-[Functions](gcp-go-functions) | Deploy a Go-based Google Cloud Function.
+Guestbook frontend service was updated with Prometheus scrape annotations.
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+```typescript
+metadata: {
+    annotations: {
+        "prometheus.io/scrape": "true",
+        "prometheus.io/port": "80",
+        "prometheus.io/path": "/metrics",
+    },
+}
+```
 
-## Kubernetes
+This enables Prometheus service discovery for the Guestbook frontend service.
 
-### TypeScript
+---
 
-[🔝 Back to the list](#all-pulumi-examples)
+## 5. Monitoring Outputs Added
 
-Example   | Description |
---------- | --------- |
-[App Rollout via ConfigMap](kubernetes-ts-configmap-rollout) | Enable a change in a ConfigMap to trigger a rollout of an nginx Deployment.
-[App Rollout via S3 Data Change](kubernetes-ts-s3-rollout) | Enable a change in data in S3 to trigger a rollout of an nginx deployment.
-[Expose Deployment](kubernetes-ts-exposed-deployment) | Deploy nginx to a Kubernetes cluster, and publicly explose it using a Kubernetes Service.
-[Guestbook](kubernetes-ts-guestbook) | Build and deploy a simple, multi-tier web application using Kubernetes and Docker.
-[Jenkins](kubernetes-ts-jenkins) | Deploy a container running the Jenkins continuous integration system onto a running Kubernetes cluster.
-[Multicloud](kubernetes-ts-multicloud) | Create managed Kubernetes clusters using AKS, EKS, and GKE, and deploy the application on each cluster.
-[nginx server](kubernetes-ts-nginx) | Deploy a replicated nginx server to a Kubernetes cluster, using TypeScript and no YAML.
-[Sock Shop](kubernetes-ts-sock-shop) | Deploy a version of the standard Sock Shop microservices reference app.
-[Staged App Rollout](kubernetes-ts-staged-rollout-with-prometheus) | Create a staged rollout gated by checking that the P90 response time reported by Prometheus is less than some amount.
-[Wordpress Helm Chart](kubernetes-ts-helm-wordpress) | Use the Helm API to deploy v2.1.3 of the Wordpress Helm Chart to a Kubernetes cluster.
+Pulumi outputs were added:
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+```typescript
+export const grafanaUsername = "admin";
+export const grafanaPassword = "admin123";
+export const monitoringNamespaceName =
+    monitoringNamespace.metadata.name;
+```
 
-### Python
+---
 
-[🔝 Back to the list](#all-pulumi-examples)
+# Grafana Access
 
-Example   | Description |
---------- | --------- |
-[Guestbook](kubernetes-py-guestbook) | Build and deploy a simple, multi-tier web application using Kubernetes and Docker.
-[Self-Host Gemma 4](kubernetes-py-self-host-gemma4-llm) | Deploy Open WebUI on Kubernetes with host-native Gemma 4 inference and Tailscale access.
+## Start Grafana Port Forwarding
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+```bash
+kubectl port-forward -n monitoring svc/grafana-eb064e59 3000:80
+```
 
-### C#
+Expected:
 
-[🔝 Back to the list](#all-pulumi-examples)
+```text
+Forwarding from 127.0.0.1:3000 -> 80
+```
 
-Example   | Description |
---------- | --------- |
-[Guestbook](kubernetes-cs-guestbook) | Build and deploy a simple, multi-tier web application using Kubernetes and Docker.
+---
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+## Open Grafana
 
-### Go
+```text
+http://localhost:3000
+```
 
-[🔝 Back to the list](#all-pulumi-examples)
+### Admin Credentials
 
-Example   | Description |
---------- | --------- |
-[Guestbook](kubernetes-go-guestbook) | Build and deploy a simple, multi-tier web application using Kubernetes and Docker.
-[App Rollout via ConfigMap](kubernetes-go-configmap-rollout) | Enable a change in a ConfigMap to trigger a rollout of an nginx Deployment.
-[Wordpress Helm Chart](kubernetes-go-helm-wordpress) | Use the Helm API to deploy v9.6.0 of the Wordpress Helm Chart to a Kubernetes cluster.
-[Expose Deployment](kubernetes-go-exposed-deployment) | Deploy nginx to a Kubernetes cluster, and publicly expose it using a Kubernetes Service.
+```text
+Username: admin
+Password: admin123
+```
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+---
 
-## Openstack
+# Prometheus Access
 
-### Python
+Start Prometheus port forwarding:
 
-[🔝 Back to the list](#all-pulumi-examples)
+```bash
+kubectl port-forward -n monitoring svc/prometheus-e15a6256-server 9090:80
+```
 
-[Web Server](openstack-py-webserver) | Deploy an Openstack instance and open port 8000.
+Expected:
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+```text
+Forwarding from 127.0.0.1:9090 -> 9090
+```
 
-## OVHCloud
+Open:
 
-### Go
+```text
+http://localhost:9090
+```
 
-| Example                              | Description |
-|--------------------------------------| --------- |
-| [Kubernetes](ovhcloud-go-kubernetes) | A sample to deploy a managed Kubernetes cluster on OVHcloud |
+---
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+# Configure Prometheus as Grafana Datasource
 
-## DigitalOcean
+Login to Grafana.
 
-### TypeScript
+Navigate to:
 
-[🔝 Back to the list](#all-pulumi-examples)
+```text
+Connections → Data Sources
+```
 
-Example   | Description |
---------- | --------- |
-[Droplets](digitalocean-ts-loadbalanced-droplets) | Build sample architecture.
-[Kubernetes](digitalocean-ts-k8s) | Provision a DigitalOcean Kubernetes cluster.
+Click:
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+```text
+Add Data Source
+```
 
-### Python
+Select:
 
-[🔝 Back to the list](#all-pulumi-examples)
+```text
+Prometheus
+```
 
-Example   | Description |
---------- | --------- |
-[Droplets](digitalocean-py-loadbalanced-droplets) | Build sample architecture.
-[Kubernetes](digitalocean-py-k8s) | Provision a DigitalOcean Kubernetes cluster.
+Use URL:
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+```text
+http://prometheus-e15a6256-server.monitoring.svc.cluster.local
+```
 
-### C#
+Click:
 
-[🔝 Back to the list](#all-pulumi-examples)
+```text
+Save & Test
+```
 
-Example   | Description |
---------- | --------- |
-[Droplets](digitalocean-cs-loadbalanced-droplets) | Build sample architecture.
-[Kubernetes](digitalocean-cs-k8s) | Provision a DigitalOcean Kubernetes cluster.
+Expected result:
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+```text
+Data source is working
+```
 
-## Multicloud
+This confirms Grafana can successfully connect to Prometheus.
 
-### TypeScript
+---
 
-[🔝 Back to the list](#all-pulumi-examples)
+# Grafana Dashboard
 
-[Try Pulumi Copilot](https://app.pulumi.com/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) and use natural-language prompts to generate Pulumi example programs in _any_ language.
+Dashboard Name:
 
-Example   | Description |
---------- | --------- |
-[Buckets](multicloud-ts-buckets) | Use a single Pulumi program to provision resources in both AWS and GCP.
+```text
+Guestbook Application Monitoring
+```
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+## Frontend Pod Count
 
-## F5
+```promql
+count(kube_pod_info{pod=~"frontend.*"})
+```
 
-### TypeScript
+Visualization:
 
-[🔝 Back to the list](#all-pulumi-examples)
+```text
+Stat
+```
 
-Example   | Description |
---------- | --------- |
-[BigIP Local Traffic Manager](f5bigip-ts-ltm-pool) | Provide load balancing via an F5 BigIP appliance to backend HTTP instances.
+---
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+## Redis Pod Count
 
-## Twilio
+```promql
+count(kube_pod_info{pod=~"redis.*"})
+```
 
-### TypeScript
+Visualization:
 
-[🔝 Back to the list](#all-pulumi-examples)
+```text
+Stat
+```
 
-Example   | Description |
---------- | --------- |
-[Component](twilio-ts-component) | Create a custom Component Resource to parse incoming messages from Twilio.
+---
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+## CPU Usage
 
-## Linode
+```promql
+sum(rate(container_cpu_usage_seconds_total{pod=~"frontend.*|redis.*"}[5m]))
+```
 
-### JavaScript
+Visualization:
 
-[🔝 Back to the list](#all-pulumi-examples)
+```text
+Time Series
+```
 
-Example   | Description |
---------- | --------- |
-[Web Server](linode-js-webserver) | Build a web server on Linode.
+---
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+## Memory Usage
 
-## Testing
+```promql
+sum(container_memory_usage_bytes{pod=~"frontend.*|redis.*"})
+```
 
-[🔝 Back to the list](#all-pulumi-examples)
+Visualization:
 
-Example   | Description |
------          | --------- |
-[Unit Tests in TypeScript](testing-unit-ts)      | Mock-based unit tests in TypeScript.
-[Unit Tests in Python](testing-unit-py)          | Mock-based unit tests in Python.
-[Unit Tests in Go](testing-unit-go)              | Mock-based unit tests in Go.
-[Unit Tests in C#](testing-unit-cs)              | Mock-based unit tests in C#.
-[Testing with Policies](testing-pac-ts)          | Tests based on Policy-as-Code in TypeScript.
-[Integration Testing in Go](testing-integration) | Deploy-check-destroy tests in Go.
+```text
+Time Series
+```
 
-[Use Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=pulumi-examples) to build a new example in _any_ language.
+---
 
-## Automation API
+## Container Restarts
 
-[🔝 Back to the list](#all-pulumi-examples)
+```promql
+sum(kube_pod_container_status_restarts_total{pod=~"frontend.*|redis.*"})
+```
 
-[Automation API Examples](https://github.com/pulumi/automation-api-examples)
+Visualization:
 
-## Community
+```text
+Stat
+```
 
-Engage with our community to elevate your developer experience:
+---
 
-- **Join our online [Pulumi Community on Slack](https://slack.pulumi.com/?utm_campaign=pulumi-pulumi-examples-repo&utm_source=github.com&utm_medium=welcome-slack)** - Interact with thousands of Pulumi developers for collaborative problem-solving and knowledge-sharing!
-- **Join a [Local Pulumi User Groups (PUGs)](https://www.meetup.com/pro/pugs/)**-  Attend tech-packed meetups and hands-on virtual or in-person workshops.
-- **Follow [@PulumiCorp](https://twitter.com/PulumiCorp) on X (Twitter)** - Get real-time updates, technical insights, and sneak peeks into the latest features.
-- **Subscribe to our YouTube Channel, [PulumiTV](https://www.youtube.com/@PulumiTV)** - Learn about AI / ML essentials, launches, workshops, demos and more.
-- **Follow our [LinkedIn](https://www.linkedin.com/company/pulumi/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=examples-community)** - Uncover company news, achievements, and behind-the-scenes glimpses.
+# How to Verify Guestbook Metrics Are Being Scraped by Prometheus
 
-## Contributors
+## Step 1: Verify Frontend Service Annotations
 
-Meet the [brilliant minds behind this project](https://github.com/pulumi/examples/graphs/contributors), view their profiles, and learn about their valuable contributions.
+Run:
 
-Want to contribute an example? Please visit our [CONTRIBUTING](CONTRIBUTING.md) doc for details.
+```bash
+kubectl describe svc frontend
+```
 
-## Pulumi developer resources
+Verify annotations exist:
 
-Delve deeper into our project with additional resources:
+```text
+prometheus.io/scrape=true
+prometheus.io/port=80
+prometheus.io/path=/metrics
+```
 
-- [Get Started with Pulumi](https://www.pulumi.com/docs/get-started/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=examples-resources): Deploy a simple application in AWS, Azure, Google Cloud, or Kubernetes using Pulumi.
-- [Documentation](https://www.pulumi.com/docs/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=examples-resources): Learn about Pulumi concepts, follow user guides, and consult the reference documentation.
-- [Pulumi Blog](https://www.pulumi.com/blog/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=examples-resources) - Stay in the loop with our latest tech announcements, insightful articles, and updates.
-- [Registry](https://www.pulumi.com/registry/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=examples-resources): Search for packages and learn about the supported resources you need. Install the package directly into your project, browse the API documentation, and start building.
-- [Try Pulumi AI](https://www.pulumi.com/ai/?utm_campaign=pulumi-examples-github-repo&utm_source=github.com&utm_medium=examples-resources) - Use natural-language prompts to generate Pulumi infrastructure-as-code programs in any language.
+---
 
-## Pulumi roadmap
+## Step 2: Verify Prometheus Targets
 
-Review the planned work for the upcoming quarter and a selected backlog of issues that are on our mind but not yet scheduled on the [Pulumi Roadmap.](https://github.com/orgs/pulumi/projects/44)
+Open:
+
+```text
+http://localhost:9090
+```
+
+Navigate to:
+
+```text
+Status → Targets
+```
+
+Verify that Prometheus has discovered Kubernetes targets.
+
+Targets should display:
+
+```text
+State = UP
+```
+
+for healthy targets.
+
+---
+
+## Step 3: Verify Metrics Collection
+
+Open Prometheus Query UI:
+
+```text
+http://localhost:9090
+```
+
+Run:
+
+### Pod Count
+
+```promql
+count(kube_pod_info)
+```
+
+### CPU Usage
+
+```promql
+sum(rate(container_cpu_usage_seconds_total[5m]))
+```
+
+### Memory Usage
+
+```promql
+sum(container_memory_usage_bytes)
+```
+
+If metrics return values, Prometheus is successfully scraping and storing monitoring data.
+
+---
+
+## Step 4: Verify Metrics in Grafana
+
+Open Grafana:
+
+```text
+http://localhost:3000
+```
+
+Open the dashboard:
+
+```text
+Guestbook Application Monitoring
+```
+
+Verify panels display real-time values and graphs for:
+
+- Pod Count
+- CPU Usage
+- Memory Usage
+- Container Restarts
+
+---
+
+# Notes
+
+The sample Guestbook application does not natively expose a Prometheus `/metrics` endpoint.
+
+Prometheus service discovery is configured through Kubernetes service annotations, while resource monitoring is provided through:
+
+- Prometheus
+- Node Exporter
+- Kube State Metrics
+
+Application-level metrics such as request count, request rate, and error rate would require additional Prometheus instrumentation within the Guestbook application or an exporter sidecar.

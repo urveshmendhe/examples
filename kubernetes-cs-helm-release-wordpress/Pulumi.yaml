@@ -1,5 +1,0 @@
-name: kubernetes-cs-helm-release-wordpress
-runtime: dotnet
-description: A minimal installation of the Wordpress Helm chart using Helm Release support
-template:
-  description: A minimal installation of the WordPress Helm chart using Helm Release support

@@ -1,8 +1,0 @@
-node_modules/
-bin/
-.pulumi/
-Pulumi.*.yaml
-!Pulumi.dev.yaml.example
-*.secret
-.env
-package-lock.json

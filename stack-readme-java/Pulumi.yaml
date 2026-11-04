@@ -1,5 +1,0 @@
-name: stack-readme-java
-runtime: java
-description: A minimal Java Pulumi program demonstrating Stack Readmes
-template:
-  description: A minimal Java Pulumi program demonstrating Stack READMEs

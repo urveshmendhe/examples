@@ -1,3 +1,0 @@
-name: testing-unit-go-components
-runtime: go
-description: An example that applies unit testing to Go and component resources.
