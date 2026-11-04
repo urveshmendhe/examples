@@ -1,24 +1,301 @@
-[![Deploy this example with Pulumi](https://www.pulumi.com/images/deploy-with-pulumi/dark.svg)](https://app.pulumi.com/new?template=https://github.com/pulumi/examples/tree/master/kubernetes-ts-guestbook/components#gh-light-mode-only)
-[![Deploy this example with Pulumi](https://get.pulumi.com/new/button-light.svg)](https://app.pulumi.com/new?template=https://github.com/pulumi/examples/tree/master/kubernetes-ts-guestbook/components#gh-dark-mode-only)
+# Guestbook Monitoring with Prometheus and Grafana
 
-# Simple and component-based Kubernetes Guestbook apps
+## Overview
 
-A port of the standard [Kubernetes Guestbook](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/)
-to Pulumi. This example shows you how to build and deploy a simple, multi-tier web application using Kubernetes and
-Docker, and consists of three components:
+This project extends the Pulumi Kubernetes Guestbook application with monitoring and observability capabilities using Prometheus and Grafana.
 
-* A single-instance Redis master to store guestbook entries
-* Multiple replicated Redis instances to serve reads
-* Multiple web frontend instances
+The monitoring stack includes:
 
-Unlike the original, which is defined in YAML and applied with `kubectl`, this version is authored in TypeScript and deployed with the Pulumi CLI.
+- Prometheus
+- Grafana
+- Alertmanager
+- Node Exporter
+- Kube State Metrics
 
-There is an [interactive Tutorial available](https://www.pulumi.com/docs/tutorials/kubernetes/guestbook/) for
-this example. If this is your first time using Pulumi for Kubernetes, we recommend starting there.
+Guestbook services are configured with Prometheus scrape annotations and monitored through Prometheus and Grafana.
 
-This directory contains two variants of the Guestbook, each a standalone Pulumi project with its own README:
+---
 
-- [simple/](./simple) — a straight port of the original YAML.
-- [components/](./components) — demonstrates the benefits of using a real language, namely eliminating boilerplate through the use of real component abstractions.
+# Deploy the Application
 
-Both variants provision the exact same Kubernetes Guestbook application, but showcase different aspects of Pulumi. Follow the README in whichever sub-directory you choose.
+## Prerequisites
+
+- Kubernetes Cluster
+- kubectl
+- Helm 3
+- Pulumi
+- Node.js
+
+Verify tools:
+
+```bash
+kubectl version --client
+helm version
+pulumi version
+node --version
+```
+
+## Install Dependencies
+
+```bash
+npm install
+```
+
+## Select/Create Pulumi Stack
+
+```bash
+pulumi stack init dev
+```
+
+or
+
+```bash
+pulumi stack select dev
+```
+
+## Deploy Guestbook and Monitoring Stack
+
+```bash
+pulumi up
+```
+
+Verify the deployment:
+
+```bash
+kubectl get pods
+kubectl get pods -n monitoring
+```
+
+Expected monitoring pods:
+
+```text
+grafana-xxxx
+prometheus-xxxx-server
+prometheus-xxxx-alertmanager
+prometheus-xxxx-node-exporter
+prometheus-xxxx-kube-state-metrics
+```
+
+---
+
+# Access Prometheus
+
+Start port forwarding:
+
+```bash
+kubectl port-forward -n monitoring svc/prometheus-e15a6256-server 9090:80
+```
+
+Open:
+
+```text
+http://localhost:9090
+```
+
+---
+
+# Access Grafana
+
+Start port forwarding:
+
+```bash
+kubectl port-forward -n monitoring svc/grafana-eb064e59 3000:80
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+## Grafana Credentials
+
+```text
+Username: admin
+Password: admin123
+```
+
+---
+
+# Configure Prometheus as Grafana Datasource
+
+1. Login to Grafana.
+2. Navigate to:
+
+```text
+Connections → Data Sources
+```
+
+3. Click:
+
+```text
+Add Data Source
+```
+
+4. Select:
+
+```text
+Prometheus
+```
+
+5. Configure URL:
+
+```text
+http://prometheus-e15a6256-server.monitoring.svc.cluster.local
+```
+
+6. Click:
+
+```text
+Save & Test
+```
+
+Expected message:
+
+```text
+Data source is working
+```
+
+---
+
+# Grafana Dashboard
+
+Dashboard Name:
+
+```text
+Guestbook Application Monitoring
+```
+
+Included Panels:
+
+### Frontend Pod Count
+
+```promql
+count(kube_pod_info{pod=~"frontend.*"})
+```
+
+### Redis Pod Co*nt
+
+*``promql
+count(kube_pod_info*pod=~"redis.*"})
+```
+
+### CPU Usage
+
+```promql
+sum(rate(container_cpu_usage_seconds_total{pod=~"frontend.*|redis.*"}[5m]))
+```
+
+### Memory Usage
+
+```promql
+sum(container_memory_usage_bytes{pod=~"frontend.*|redis.*"})
+```
+
+### Container Restarts
+
+```promql
+sum(kube_pod_container_status_restarts_total{pod=~"frontend.*|redis.*"})
+```
+
+---
+
+# How to Verify Guestbook Metrics Are Being Scraped
+
+## 1. Verify Service Annotations
+
+Check the frontend service:
+
+```bash
+kubectl describe svc frontend
+```
+
+Expected:
+
+```text
+prometheus.io/scrape: true
+prometheus.io/port: 80
+prometheus.io/path: /metrics
+```
+
+---
+
+## 2. Verify Prometheus Targets
+
+Open Prometheus:
+
+```text
+http://localhost:9090
+```
+
+Go to:
+
+```text
+Status → Targets
+```
+
+Verify that Kubernetes service discovery is detecting monitored targets.
+
+Targets should show:
+
+```text
+State = UP
+```
+
+---
+
+## 3. Verify Monitoring Components
+
+```bash
+kubectl get pods -n monitoring
+```
+
+Expected:
+
+```text
+grafana                          Running
+prometheus-server                Running
+prometheus-alertmanager          Running
+prometheus-node-exporter         Running
+prometheus-kube-state-metrics    Running
+```
+
+---
+
+## 4. Verify Metrics in Prometheus
+
+Open:
+
+```text
+http://localhost:9090
+```
+
+Run the following queries:
+
+### Pod Count
+
+```promql
+count(kube_pod_info)
+```
+
+### CPU Usage
+
+```promql
+sum(rate(container_cpu_usage_seconds_total[5m]))
+```
+
+### Memory Usage
+
+```promql
+sum(container_memory_usage_bytes)
+```
+
+Successful query results confirm Prometheus is collecting metrics.
+
+---
+
+# Notes
+
+The Guestbook sample application does not natively expose a Prometheus `/metrics` endpoint. Prometheus service discovery has been configured using Kubernetes service annotations, while resource-level metrics are collected through Node Exporter and Kube State Metrics.
+
+Application-level request count and error-rate metrics would require Guestbook application instrumentation using Prometheus client libraries or an exporter sidecar.
