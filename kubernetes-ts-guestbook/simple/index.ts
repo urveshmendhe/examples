@@ -2,6 +2,8 @@
 
 import * as k8s from "@pulumi/kubernetes";
 import * as pulumi from "@pulumi/pulumi";
+import { createPrometheus } from "./monitoring/prometheus";
+import { createGrafana } from "./monitoring/grafana";
 
 // Minikube does not implement services of type `LoadBalancer`; require the user to specify if we're
 // running on minikube, and if so, create only services of type ClusterIP.
@@ -110,6 +112,12 @@ const frontendService = new k8s.core.v1.Service("frontend", {
     metadata: {
         labels: frontendDeployment.metadata.labels,
         name: "frontend",
+
+	annotations: {
+        "prometheus.io/scrape": "true",
+        "prometheus.io/port": "80",
+        "prometheus.io/path": "/metrics",
+    	},
     },
     spec: {
         type: isMinikube ? "ClusterIP" : "LoadBalancer",
@@ -125,3 +133,35 @@ if (isMinikube) {
 } else {
     frontendIp = frontendService.status.loadBalancer.ingress[0].ip;
 }
+
+
+const monitoringNamespace =
+    new k8s.core.v1.Namespace(
+        "monitoring",
+        {
+            metadata: {
+                name: "monitoring",
+            },
+        }
+    );
+
+const prometheus =
+    createPrometheus(monitoringNamespace);
+
+const grafana =
+    createGrafana(monitoringNamespace);
+
+
+export const grafanaUrl = "http://localhost:30284";
+
+export const grafanaUsername = "admin";
+
+export const grafanaPassword = "admin123";
+
+export const monitoringNamespaceName =
+    monitoringNamespace.metadata.name;
+
+
+
+
+
